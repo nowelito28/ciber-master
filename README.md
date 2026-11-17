@@ -1,21 +1,23 @@
-# Máster en Ciberseguridad: Defensiva y Ofensiva
+# Master's in Cybersecurity: Defensive and Offensive Security
 
-Este repositorio recoge las prácticas que realizo durante el **Máster en Ciberseguridad: Defensiva y Ofensiva de la Universidad Complutense de Madrid (UCM)**, en el curso **2026-2027**.
+This repository contains the practical assignments I complete during the **Master's in Cybersecurity: Defensive and Offensive Security at the Complutense University of Madrid (UCM)**, in the **2026–2027** academic year.
 
-El máster aborda la seguridad de los sistemas y de la información desde dos perspectivas complementarias: la defensiva, orientada a proteger los entornos y detectar amenazas, y la ofensiva, centrada en identificar y analizar vulnerabilidades. Las prácticas permiten aplicar los conceptos estudiados mediante herramientas, scripts y ejercicios técnicos, documentando los procedimientos y sus resultados.
+The programme covers system and information security from two complementary perspectives: defensive security, focused on protecting environments and detecting threats, and offensive security, focused on identifying and analysing vulnerabilities. Practical assignments apply these concepts through tools, scripts and technical exercises, with documented procedures and results.
 
-## Prácticas
+**Language:** the practical assignments and their reports are written in **Spanish**. This README provides an overview in English; some scripts and technical instructions are also in English.
 
-### [1-cripto — Criptografía aplicada y Esteganografía](1-cripto/)
+## Practical assignments
 
-El módulo estudia cómo proteger la confidencialidad, la integridad y la autenticidad de la información mediante cifrado simétrico y asimétrico, funciones hash, derivación de claves y firmas digitales. También introduce la esteganografía: técnicas para ocultar información en un soporte o canal y métodos para detectar esa ocultación.
+### [1-cripto — Applied Cryptography and Steganography](1-cripto/)
 
-La práctica plantea un caso de asesoramiento a la empresa ficticia **Crypto S.A.**, utilizando **OpenSSL** y scripts para resolver tres ejercicios:
+This module explores how to protect the confidentiality, integrity and authenticity of information using symmetric and asymmetric encryption, hash functions, key derivation and digital signatures. It also introduces steganography: techniques for hiding information within a medium or communication channel, and methods for detecting it.
 
-1. **Derivación de claves y cifrado de ficheros:** obtener diez claves a partir de una clave maestra de 128 bits y utilizarlas para cifrar y descifrar diez ficheros, cada uno con una clave diferente.
-2. **Cifrado autenticado con AES-GCM:** proteger un fichero mediante un esquema que combine cifrado y autenticación.
-3. **Firma digital con curva elíptica:** generar un par de claves, firmar un documento y verificar su firma.
+The assignment presents a consulting scenario for the fictional company **Crypto S.A.**, using **OpenSSL** and scripts to address three exercises:
 
-La carpeta contiene el [enunciado](1-cripto/tarea.pdf), la memoria en LaTeX y su PDF, los scripts y los recursos de apoyo, como diagramas y salidas de ejecución. El [README de la práctica](1-cripto/README.md) detalla su estructura y las instrucciones de uso y compilación.
+1. **Key derivation and file encryption:** derive ten keys from a 128-bit master key and use them to encrypt and decrypt ten files, each with a different key.
+2. **Authenticated encryption with AES-GCM:** protect a file using a scheme that combines encryption and authentication.
+3. **Elliptic-curve digital signatures:** generate a key pair, sign a document and verify its signature.
 
-**Estado:** en desarrollo. Por ahora se han implementado la preparación y la derivación de claves de la primera pregunta; el resto de la implementación y su validación siguen pendientes.
+The folder contains the [assignment brief](1-cripto/tarea.pdf), the LaTeX report and its PDF, scripts, and supporting resources such as diagrams and execution output. The [assignment README](1-cripto/README.md) describes the folder structure and provides usage and compilation instructions.
+
+**Status:** work in progress. Preparation and key derivation for the first exercise have been implemented; the remaining implementation and validation are still pending.
