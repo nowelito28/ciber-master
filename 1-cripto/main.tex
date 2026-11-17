@@ -1,0 +1,32 @@
+% !TeX program = pdflatex
+% Punto de entrada. Compilar desde el directorio del proyecto.
+\documentclass[12pt,a4paper,oneside,openany]{book}
+
+\input{config/datos}
+\input{config/paquetes}
+\input{config/estilo}
+\input{config/comandos}
+\input{config/esquemas}
+
+\begin{document}
+\frontmatter
+\input{secciones/00-portada}
+
+\tableofcontents
+\clearpage
+\mainmatter
+
+\input{secciones/01-resumen-modulo}
+\input{secciones/02-introduccion}
+\clearpage
+\input{secciones/03-desarrollo}
+\clearpage
+\input{secciones/04-conclusiones}
+\backmatter
+\input{secciones/05-referencias}
+
+% Activar cuando existan anexos reales:
+% \clearpage
+% \appendix
+% \input{secciones/anexos/entorno}
+\end{document}

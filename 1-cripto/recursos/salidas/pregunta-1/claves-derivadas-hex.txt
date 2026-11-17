@@ -1,0 +1,6 @@
+$ od -An -v -tx1 crypto-workspace/secrets/derived-keys/file-01.encryption.bin
+ 73 ce 98 60 f6 66 5d b7 ed ec 6b 62 40 6c a7 75
+
+$ od -An -v -tx1 crypto-workspace/secrets/derived-keys/file-01.authentication.bin
+ 29 98 33 0c 5e 73 ad 05 e0 0c 48 79 ab b3 37 c4
+ 89 94 5d 72 d8 6b aa ca d7 c0 d3 29 33 f2 8a 75

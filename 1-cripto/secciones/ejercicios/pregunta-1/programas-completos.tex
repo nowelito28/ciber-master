@@ -1,0 +1,77 @@
+\textbf{Generación de la clave simétrica maestra y las sales:}
+El script \texttt{gen-keys.sh} crea el espacio de trabajo con directorios separados y utiliza \texttt{openssl rand} para generar una clave maestra y diez sales de 16 bytes. 
+\texttt{umask 077} restringe el acceso a los archivos nuevos al usuario propietario, evitando que otros usuarios del sistema puedan acceder a ellos y modificarlos.
+La función \texttt{generate} llama al comprobador antes de confirmar que la inicialización ha finalizado correctamente.
+Si el directorio ya existe o se produce un fallo, su eliminación y el nuevo intento requieren escribir \texttt{DELETE}; cualquier otra respuesta conserva los archivos y cancela la ejecución.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Inicialización y comprobación del espacio de trabajo: gen-keys.sh.},
+ label={lst:p1-gen-completo}]{recursos/listados/pregunta-1/gen-keys.sh}
+\endgroup
+
+La ejecución correcta de \texttt{gen-keys.sh} mostró la siguiente salida, que confirma la validación de la maestra y las diez sales:
+
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,caption={Ejecución de gen-keys.sh con validación satisfactoria.},label={lst:p1-inicializacion-real}]{recursos/salidas/pregunta-1/inicializacion-validada.txt}
+\endgroup
+
+A continuación se muestran la clave maestra y las dos primeras sales en hexadecimal, consultadas con \texttt{od} para verificar su contenido visualmente.
+Cada par de dígitos representa un byte y cada línea contiene los 16 bytes del archivo.
+
+\begingroup
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize]{recursos/salidas/pregunta-1/maestra-y-sales-hex.txt}
+\endgroup
+
+\textbf{Validación de la generación de claves:} El script \texttt{prepare-inputs.sh} comprueba que existen tanto la clave maestra como las diez sales, y que cada archivo contiene exactamente 16 bytes.
+Después compara los 45 pares posibles de sales mediante \texttt{cmp -s}, evitando comparaciones repetidas.
+Un archivo ausente, un tamaño incorrecto o dos sales iguales provocan la finalización con error.
+El procedimiento no modifica las entradas y solo muestra \texttt{PASS} cuando todas las comprobaciones se superan.
+Este script se ejecuta automáticamente desde \texttt{gen-keys.sh} y no es necesario repetirlo durante la derivación de claves.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Validación de la clave maestra y las sales: prepare-inputs.sh.},
+ label={lst:p1-prepare-completo}]{recursos/listados/pregunta-1/prepare-inputs.sh}
+\endgroup
+
+\textbf{Derivación y separación de claves:} El script \texttt{derive-keys.sh} aplica PBKDF2 con HMAC-SHA-256 y 600\,000 iteraciones para cada sal, manteniendo la misma clave maestra.
+Los comandos \texttt{od} y \texttt{tr} representan las entradas binarias en hexadecimal; las opciones \texttt{hexpass} y \texttt{hexsalt} permiten que OpenSSL recupere sus bytes originales \ref{ref:openssl-kdf-cli}.
+Cada llamada genera 48 bytes: \texttt{dd} guarda los primeros 16 como clave de cifrado y los 32 restantes como clave de autenticación.
+
+Tras separar cada par, se elimina la clave derivada intermedia y \texttt{wc -c} muestra los tamaños reales de las dos claves generadas para cada fichero.
+Las claves se guardan en \texttt{secrets/derived-keys} y \texttt{iterations.txt} conserva el coste empleado (número de iteraciones).
+La creación del directorio mediante \texttt{mkdir} impide sobrescribir una derivación existente; \texttt{set -eu} detiene el script ante órdenes fallidas o variables no definidas.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Derivación y separación de claves de cifrado y autenticación por cada fichero: derive-keys.sh.},
+ label={lst:p1-derive-completo}]{recursos/listados/pregunta-1/derive-keys.sh}
+\endgroup
+
+La ejecución de \texttt{derive-keys.sh} produjo la siguiente salida.
+Para cada fichero, \texttt{wc -c} confirmó 16 bytes de cifrado y 32 bytes de autenticación, con un subtotal de 48 bytes generados por fichero:
+
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,caption={Ejecución de derive-keys.sh con validación de tamaños.},label={lst:p1-derivacion-real}]{recursos/salidas/pregunta-1/derivacion.txt}
+\endgroup
+
+Como ejemplo, se muestran en hexadecimal las dos claves generadas para el fichero 01.
+Cada par de dígitos representa un byte: la clave de cifrado ocupa una línea de 16 bytes y la de autenticación, dos líneas de 16 bytes (32 bytes totales).
+La representación permite consultar los valores binarios sin modificar los archivos.
+
+\begingroup
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize]{recursos/salidas/pregunta-1/claves-derivadas-hex.txt}
+\endgroup

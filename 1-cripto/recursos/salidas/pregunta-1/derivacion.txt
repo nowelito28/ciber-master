@@ -1,0 +1,41 @@
+$ ./derive-keys.sh
+Derived keys for file-01:
+      16 ./crypto-workspace/secrets/derived-keys/file-01.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-01.authentication.bin
+      48 total
+Derived keys for file-02:
+      16 ./crypto-workspace/secrets/derived-keys/file-02.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-02.authentication.bin
+      48 total
+Derived keys for file-03:
+      16 ./crypto-workspace/secrets/derived-keys/file-03.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-03.authentication.bin
+      48 total
+Derived keys for file-04:
+      16 ./crypto-workspace/secrets/derived-keys/file-04.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-04.authentication.bin
+      48 total
+Derived keys for file-05:
+      16 ./crypto-workspace/secrets/derived-keys/file-05.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-05.authentication.bin
+      48 total
+Derived keys for file-06:
+      16 ./crypto-workspace/secrets/derived-keys/file-06.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-06.authentication.bin
+      48 total
+Derived keys for file-07:
+      16 ./crypto-workspace/secrets/derived-keys/file-07.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-07.authentication.bin
+      48 total
+Derived keys for file-08:
+      16 ./crypto-workspace/secrets/derived-keys/file-08.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-08.authentication.bin
+      48 total
+Derived keys for file-09:
+      16 ./crypto-workspace/secrets/derived-keys/file-09.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-09.authentication.bin
+      48 total
+Derived keys for file-10:
+      16 ./crypto-workspace/secrets/derived-keys/file-10.encryption.bin
+      32 ./crypto-workspace/secrets/derived-keys/file-10.authentication.bin
+      48 total

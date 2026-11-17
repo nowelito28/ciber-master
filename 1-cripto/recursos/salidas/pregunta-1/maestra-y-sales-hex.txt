@@ -1,0 +1,8 @@
+$ od -An -v -tx1 crypto-workspace/secrets/master_key.bin
+ 14 0c 78 20 c2 7a 9f 1c d9 93 d5 a5 01 20 e4 fd
+
+$ od -An -v -tx1 crypto-workspace/metadata/salts/file-01.bin
+ 2a 7c 74 e9 57 55 f5 4e d4 b3 d0 4c 3b 43 bc dc
+
+$ od -An -v -tx1 crypto-workspace/metadata/salts/file-02.bin
+ 95 3a bb 05 2b ba 9c 37 31 b4 0b 46 45 ae 4c 6c

@@ -1,0 +1,96 @@
+% ESTILO DE MEMORIA ACADÉMICA
+% Adaptación visual del TFG del autor: https://github.com/nowelito28/TFG
+% La portada utiliza la identidad UCM y el contenido de esta práctica.
+\definecolor{Granate}{HTML}{871B36}
+\definecolor{Grafito}{HTML}{202020}
+\definecolor{GrisTexto}{HTML}{555555}
+\definecolor{GrisFondo}{HTML}{F8F8F8}
+\definecolor{GrisLinea}{HTML}{B5B5B5}
+
+\setstretch{1.35}
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{5pt plus 1pt minus 1pt}
+\setlength{\emergencystretch}{2em}
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{2}
+\setlist[itemize]{leftmargin=*,itemsep=2pt,topsep=3pt}
+\setlist[enumerate]{leftmargin=*,itemsep=2pt,topsep=3pt}
+
+% Capítulos como en el TFG: regla fina, etiqueta y título a la izquierda,
+% y regla gruesa de cierre. Sin dependencias de fncychap.
+\newcommand{\ReglaCapitulo}{\titlerule[0.5mm]}
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\Huge}
+  {\titlerule\filright\Large\chaptertitlename\ \thechapter}
+  {0mm}{\filright}
+  [\vspace{0.5mm}\ReglaCapitulo]
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\bfseries\Huge}
+  {\titlerule}
+  {0mm}{\filright}
+  [\vspace{0.5mm}\ReglaCapitulo]
+\titlespacing*{\chapter}{0pt}{35pt}{28pt}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{0.7em}{}
+\titlespacing*{\section}{0pt}{16pt}{7pt}
+\titlespacing*{\subsection}{0pt}{12pt}{5pt}
+
+% La apertura lleva número al pie; las demás páginas, cabecera de capítulo.
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{%
+  \markboth{\ifnum\value{chapter}>0 \chaptername\ \thechapter.\ \fi #1}{}%
+}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+\hypersetup{
+  unicode=true,hidelinks,
+  pdftitle={\TituloMemoria: \Modulo},
+  pdfauthor={\Autor},
+  pdfsubject={\Titulacion},
+  pdfkeywords={criptografía, esteganografía, memoria, práctica},
+  bookmarksnumbered=true
+}
+\urlstyle{same}
+\captionsetup{font=small,labelfont=bf,labelsep=period,skip=7pt,justification=centering}
+\addto\captionsspanish{\renewcommand{\contentsname}{Índice general}}
+
+% Marco discreto para distinguir fielmente cada enunciado del desarrollo.
+\tcbset{memoria/.style={
+  enhanced,sharp corners,boxrule=0.4pt,
+  colframe=GrisLinea,colback=white,
+  left=10pt,right=10pt,top=7pt,bottom=7pt,
+  before skip=9pt,after skip=9pt,
+  fonttitle=\normalfont\small\bfseries,
+  coltitle=black,colbacktitle=GrisFondo,
+  before upper={\setstretch{1.15}\setlength{\parindent}{0pt}}
+}}
+\newtcolorbox{enunciado}[1]{memoria,title={Enunciado original #1}}
+\newtcolorbox{notaestado}{memoria,title={Estado del documento}}
+
+% Los futuros listados tienen marco superior e inferior, como en el TFG.
+\lstdefinestyle{terminal}{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{white},
+  frame=tb,rulecolor=\color{GrisLinea},
+  breaklines=true,columns=fullflexible,keepspaces=true,
+  showstringspaces=false,tabsize=4,
+  aboveskip=3mm,belowskip=3mm,
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+           {ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+}
+\lstset{style=terminal}
+\renewcommand{\lstlistingname}{Código}
+\lstdefinestyle{programacompleto}{
+  style=terminal,basicstyle=\ttfamily\footnotesize,
+  numbers=left,numberstyle=\tiny\color{GrisTexto},
+  numbersep=8pt,xleftmargin=6mm
+}

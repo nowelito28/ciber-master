@@ -1,0 +1,10 @@
+# Productos de compilación; tarea.pdf y recursos PDF sí se conservan.
+build/
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+.DS_Store

@@ -1,0 +1,45 @@
+% Original vector diagram: topic 1.4, slide 26 and RFC 8018, section 5.2.
+% One 48-byte derivation per file; output slices never overlap.
+\begingroup
+\setstretch{1}
+\hyphenpenalty=10000
+\newcommand{\keyblock}[3]{%
+  {\fontsize{13}{15}\selectfont\bfseries\boldmath #1}\\[4pt]
+  {\fontsize{9}{11}\selectfont\mdseries #2}\\[3pt]
+  {\fontsize{8}{10}\selectfont\mdseries (#3)}%
+}
+\begin{tikzpicture}[x=1cm,y=1cm,
+  keynode/.style={proceso,text width=37mm,minimum height=16mm,inner sep=6pt},
+  secretkeynode/.style={keynode,fill=white,funcionsecreta},
+  keylength/.style={etiqueta,font=\sffamily\fontsize{8}{10}\selectfont,
+    inner sep=2pt,fill=white}
+]
+  \node[secretkeynode] (master) at (0,1.6)
+    {\keyblock{$K_M$}{Master key}{shared secret input}};
+  \node[keynode,fill=white,funcionpublica] (salt) at (0,-1.6)
+    {\keyblock{$S_i$}{Per-file salt}{random public parameter}};
+  \node[keynode,text width=43mm,funcioncripto] (pbkdf) at (5.5,0)
+    {\keyblock{PBKDF2}{Password-Based Key\\Derivation Function 2}{HMAC-SHA-256;\\600\,000 iterations}};
+  \node[secretkeynode] (derived) at (11.4,0)
+    {\keyblock{$\mathrm{DK}_i$}{Derived key material}{secret output}};
+
+  \draw[flujo] (master.east) -- node[keylength,above] {16 bytes (128 bits)}
+    (5.5,1.6) -- (pbkdf.north);
+  \draw[flujo] (salt.east) -- node[keylength,below] {16 bytes (128 bits)}
+    (5.5,-1.6) -- (pbkdf.south);
+  \draw[flujo] (pbkdf.east) -- node[keylength,above] {48 bytes\\(384 bits)} (derived.west);
+
+  \node[keynode,funcionformato] (split) at (11.4,-2.7)
+    {\keyblock{Split}{Fixed byte partition}{non-overlapping slices}};
+  \draw[flujo] (derived.south) -- node[keylength,right] {48 bytes (384 bits)} (split.north);
+
+  \node[secretkeynode,text width=43mm] (enc) at (5.5,-5.3)
+    {\keyblock{$K_i^{\mathrm{cif}}$}{Encryption key}{bytes 1--16; AES-128}};
+  \node[secretkeynode,text width=43mm] (mac) at (11.4,-5.3)
+    {\keyblock{$K_i^{\mathrm{mac}}$}{Authentication key}{bytes 17--48; HMAC-SHA-256}};
+  \draw[flujo] (split.west) -- node[keylength,above] {16 bytes (128 bits)}
+    (5.5,-2.7) -- (enc.north);
+  \draw[flujo] (split.south) -- node[keylength,right] {32 bytes (256 bits)} (mac.north);
+  \leyendaFunciones{(5.7,-6.7)}
+\end{tikzpicture}
+\endgroup

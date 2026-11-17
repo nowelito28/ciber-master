@@ -1,0 +1,33 @@
+% Estilo común de los esquemas vectoriales originales de la práctica.
+% Se utiliza dentro de tikzpicture, después de cargar config/estilo.tex.
+\definecolor{BordePublico}{HTML}{26705B}
+\definecolor{BordeCripto}{HTML}{245A89}
+\definecolor{BordeFormato}{HTML}{A06B20}
+\tikzset{
+  funcionsecreta/.style={draw=Granate,line width=0.9pt},
+  funcionpublica/.style={draw=BordePublico,line width=0.9pt},
+  funcioncripto/.style={draw=BordeCripto,line width=0.9pt},
+  funcionformato/.style={draw=BordeFormato,line width=0.9pt},
+  proceso/.style={
+    draw=Grafito,line width=0.6pt,rounded corners=1pt,
+    fill=GrisFondo,align=center,text width=30mm,
+    minimum height=12mm,inner sep=5pt,font=\sffamily\fontsize{9}{11}\selectfont
+  },
+  dato/.style={proceso,fill=white},
+  secreto/.style={dato,draw=Granate},
+  decision/.style={
+    diamond,aspect=1.6,draw=Grafito,line width=0.6pt,
+    fill=GrisFondo,align=center,text width=18mm,
+    inner sep=2pt,font=\sffamily\fontsize{9}{11}\selectfont
+  },
+  flujo/.style={-{Latex[length=2mm,width=1.4mm]},line width=0.65pt,draw=Grafito},
+  etiqueta/.style={font=\sffamily\fontsize{8}{10}\selectfont,fill=white,inner sep=2pt,align=center},
+  rechazo/.style={dato,draw=Granate,text=Granate}
+}
+\newcommand{\leyendaFunciones}[1]{%
+  \node[font=\sffamily\fontsize{8}{10}\selectfont,align=center] at #1
+    {\textcolor{Granate}{$\square$} Secret data\quad
+     \textcolor{BordePublico}{$\square$} Public data\quad
+     \textcolor{BordeCripto}{$\square$} Cryptography\quad
+     \textcolor{BordeFormato}{$\square$} Formatting};
+}

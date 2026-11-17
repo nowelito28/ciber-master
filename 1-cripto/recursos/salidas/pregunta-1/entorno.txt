@@ -1,0 +1,9 @@
+$ command -v openssl
+/opt/homebrew/bin/openssl
+$ openssl version
+OpenSSL 4.1.0 23 Oct 2026 (Library: OpenSSL 4.1.0 23 Oct 2026)
+$ wc -c crypto-workspace/secrets/master_key.bin
+      16 crypto-workspace/secrets/master_key.bin
+$ ls -l crypto-workspace/metadata
+total 8
+-rw-------@ 1 noelito  staff  32 Nov 14 13:02 salt.bin

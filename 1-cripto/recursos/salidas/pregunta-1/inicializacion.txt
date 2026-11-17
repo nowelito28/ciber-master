@@ -1,0 +1,15 @@
+$ ./gen-key.sh
+Workspace created successfully.
+Expected size: 16 bytes for every file listed below.
+      16 ./crypto-workspace/secrets/master_key.bin
+      16 ./crypto-workspace/metadata/salts/file-01.bin
+      16 ./crypto-workspace/metadata/salts/file-02.bin
+      16 ./crypto-workspace/metadata/salts/file-03.bin
+      16 ./crypto-workspace/metadata/salts/file-04.bin
+      16 ./crypto-workspace/metadata/salts/file-05.bin
+      16 ./crypto-workspace/metadata/salts/file-06.bin
+      16 ./crypto-workspace/metadata/salts/file-07.bin
+      16 ./crypto-workspace/metadata/salts/file-08.bin
+      16 ./crypto-workspace/metadata/salts/file-09.bin
+      16 ./crypto-workspace/metadata/salts/file-10.bin
+     176 total

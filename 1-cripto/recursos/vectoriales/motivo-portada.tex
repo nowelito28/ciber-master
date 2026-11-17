@@ -1,0 +1,11 @@
+% Ilustración original en TikZ: salida íntegramente vectorial.
+% No es un escudo ni un logotipo institucional.
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \draw[GrisLinea,line width=0.6pt] (0,0) -- (11.8,0);
+  \foreach \x/\texto in {0/Confidencialidad,4.2/Integridad,8.4/Autenticidad}{
+    \draw[Granate,line width=0.8pt] (\x,0) circle (0.09);
+    \fill[white] (\x,0) circle (0.045);
+    \node[anchor=north west,font=\sffamily\small,text=GrisTexto] at (\x,-0.25) {\texto};
+  }
+  \draw[Granate,line width=1.1pt] (11.8,-0.25) -- (11.8,0.5);
+\end{tikzpicture}

@@ -1,0 +1,53 @@
+% Original vector diagram: topics 1.2 and 1.4, Encrypt-then-MAC.
+% Variable byte lengths: n_i plaintext, m_i padded plaintext/ciphertext,
+% h_i serialized header and d_i unambiguous header/ciphertext encoding.
+\begingroup
+\setstretch{1}
+\hyphenpenalty=10000
+\newcommand{\cipherblock}[3]{%
+  {\fontsize{13}{15}\selectfont\bfseries\boldmath #1}\\[4pt]
+  {\fontsize{9}{11}\selectfont\mdseries #2}\\[3pt]
+  {\fontsize{8}{10}\selectfont\mdseries (#3)}%
+}
+\begin{tikzpicture}[x=1cm,y=1cm,
+  ciphernode/.style={proceso,text width=37mm,minimum height=16mm,inner sep=6pt},
+  publicnode/.style={ciphernode,fill=white,funcionpublica},
+  secretnode/.style={ciphernode,fill=white,funcionsecreta},
+  datalength/.style={etiqueta,font=\sffamily\fontsize{8}{10}\selectfont,
+    inner sep=2pt,fill=white}
+]
+  \node[secretnode] (plain) at (0,0)
+    {\cipherblock{$M_i$}{Plaintext file}{variable length}};
+  \node[ciphernode,funcionformato] (padding) at (5.8,0)
+    {\cipherblock{PKCS\#7}{Block padding}{add 1--16 bytes;\\$m_i=16(\lfloor n_i/16\rfloor+1)$}};
+  \node[ciphernode,text width=40mm,funcioncripto] (aes) at (11.6,0)
+    {\cipherblock{AES-128-CBC}{Advanced Encryption Standard\\Cipher Block Chaining}{key $K_i^{\mathrm{cif}}$;\\random vector $V_i$ (16 bytes)}};
+  \draw[flujo] (plain.east) -- node[datalength,above] {$n_i$ bytes\\($8n_i$ bits)} (padding.west);
+  \draw[flujo] (padding.east) -- node[datalength,above] {$m_i$ bytes\\($8m_i$ bits)} (aes.west);
+
+  \node[publicnode,text width=40mm] (header) at (5.8,-3.3)
+    {\cipherblock{$H_i$}{Public header}{version, $S_i$, $c$, file index,\\algorithms and $V_i$}};
+  \node[publicnode] (cipher) at (11.6,-3.3)
+    {\cipherblock{$C_i$}{Ciphertext}{multiple of 16 bytes}};
+  \draw[flujo] (aes.south) -- node[datalength,right] {$m_i$ bytes\\($8m_i$ bits)} (cipher.north);
+
+  \node[ciphernode,text width=40mm,funcionformato] (encode) at (5.8,-6.6)
+    {\cipherblock{$D_i$}{Unambiguous encoding}{$D_i=\operatorname{cod}(H_i,C_i)$}};
+  \node[ciphernode,text width=40mm,funcioncripto] (hmac) at (11.6,-6.6)
+    {\cipherblock{HMAC-SHA-256}{Hash-based Message\\Authentication Code}{key $K_i^{\mathrm{mac}}$; input $D_i$}};
+  \draw[flujo] (header.south) -- node[datalength,left] {$h_i$ bytes\\($8h_i$ bits)} (encode.north);
+  \draw[flujo] (cipher.south) -- (11.6,-4.95)
+    -- node[datalength,above] {$m_i$ bytes ($8m_i$ bits)} (6.65,-4.95)
+    -- ([xshift=8.5mm]encode.north);
+  \draw[flujo] (encode.east) -- node[datalength,above] {$d_i$ bytes\\($8d_i$ bits)} (hmac.west);
+
+  \node[publicnode] (tag) at (11.6,-9.9)
+    {\cipherblock{$T_i$}{Authentication tag}{32-byte HMAC output}};
+  \node[publicnode,text width=40mm] (package) at (5.8,-9.9)
+    {\cipherblock{$D_i\,\Vert\,T_i$}{Protected file}{encoded data and tag}};
+  \draw[flujo] (hmac.south) -- node[datalength,right] {32 bytes (256 bits)} (tag.north);
+  \draw[flujo] (encode.south) -- node[datalength,left] {$d_i$ bytes\\($8d_i$ bits)} (package.north);
+  \draw[flujo] (tag.west) -- node[datalength,above] {32 bytes\\(256 bits)} (package.east);
+  \leyendaFunciones{(5.8,-11.4)}
+\end{tikzpicture}
+\endgroup

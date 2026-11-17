@@ -1,0 +1,48 @@
+% Original vector diagram: verify Encrypt-then-MAC before decryption.
+% Control-flow arrows carry decisions; data arrows carry byte/bit lengths.
+\begingroup
+\setstretch{1}
+\hyphenpenalty=10000
+\newcommand{\verifyblock}[3]{%
+  {\fontsize{13}{15}\selectfont\bfseries\boldmath #1}\\[4pt]
+  {\fontsize{9}{11}\selectfont\mdseries #2}\\[3pt]
+  {\fontsize{8}{10}\selectfont\mdseries (#3)}%
+}
+\begin{tikzpicture}[x=1cm,y=1cm,
+  verifynode/.style={proceso,text width=37mm,minimum height=16mm,inner sep=6pt},
+  datalength/.style={etiqueta,font=\sffamily\fontsize{8}{10}\selectfont,
+    inner sep=2pt,fill=white}
+]
+  \node[verifynode,fill=white,funcionpublica,text width=40mm] (package) at (0,0)
+    {\verifyblock{$D_i\,\Vert\,T_i$}{Protected file}{encoded data and tag}};
+  \node[verifynode,funcioncripto,text width=40mm] (check) at (6.4,0)
+    {\verifyblock{HMAC-SHA-256}{Hash-based Message\\Authentication Code}{key $K_i^{\mathrm{mac}}$; input $D_i$}};
+  \node[verifynode,funcioncripto,text width=40mm] (valid) at (12.8,0)
+    {\verifyblock{$T'_i\stackrel{?}{=}T_i$}{Tag verification}{constant-time comparison}};
+  \draw[flujo] (package.east) -- node[datalength,above] {$d_i$ bytes\\($8d_i$ bits)} (check.west);
+  \draw[flujo] (check.east) -- node[datalength,above] {32 bytes\\(256 bits)} (valid.west);
+  \draw[flujo] (package.north) -- (0,2.6)
+    -- node[datalength,above] {$T_i$: 32 bytes (256 bits)} (12.8,2.6)
+    -- (valid.north);
+
+  \node[verifynode,fill=white] (reject) at (12.8,-4.2)
+    {\verifyblock{Reject}{Stop processing}{no plaintext output}};
+  \node[verifynode,funcioncripto,text width=40mm] (decrypt) at (6.4,-4.2)
+    {\verifyblock{AES-128-CBC}{Advanced Encryption Standard\\Cipher Block Chaining}{decrypt $C_i$; key $K_i^{\mathrm{cif}}$;\\vector $V_i$}};
+  \node[verifynode,funcionformato,text width=40mm] (unpad) at (0,-4.2)
+    {\verifyblock{PKCS\#7}{Padding validation}{check and remove\\1--16 padding bytes}};
+  \draw[flujo] (valid.south) -- node[datalength,right] {No} (reject.north);
+  \draw[flujo] (valid.south west) |- (9.0,-2.4)
+    -- node[datalength,above] {Yes} (6.4,-2.4) -- (decrypt.north);
+  \draw[flujo] (decrypt.west) -- node[datalength,above] {$m_i$ bytes\\($8m_i$ bits)} (unpad.east);
+
+  \node[verifynode,fill=white,funcionsecreta,text width=40mm] (plain) at (0,-7.8)
+    {\verifyblock{$M_i$}{Recovered plaintext}{released after validation}};
+  \draw[flujo] (unpad.south) -- node[datalength,left] {Valid padding\\$n_i$ bytes ($8n_i$ bits)} (plain.north);
+  \draw[flujo] (unpad.south east) -- (1.6,-6.1)
+    -- node[datalength,below] {Invalid padding} (12.8,-6.1)
+    -- (reject.south);
+
+  \leyendaFunciones{(6.4,-9.2)}
+\end{tikzpicture}
+\endgroup

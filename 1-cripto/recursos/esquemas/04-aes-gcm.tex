@@ -1,0 +1,65 @@
+% Original vector diagram: topic 1.2, slide 46; topic 1.4, pp. 21--23.
+% GCM context shares K and N; GHASH includes its prescribed input encoding.
+\begingroup
+\setstretch{1}
+\hyphenpenalty=10000
+\newcommand{\gcmblock}[3]{%
+  {\fontsize{14}{16}\selectfont\bfseries\boldmath #1}\\[5pt]
+  {\fontsize{10}{12}\selectfont\mdseries #2}\\[4pt]
+  {\fontsize{9}{11}\selectfont\mdseries (#3)}%
+}
+\begin{tikzpicture}[x=1cm,y=1cm,
+  gcmnode/.style={proceso,text width=35mm,minimum height=18mm,inner sep=7pt},
+  gcmpublic/.style={gcmnode,fill=white,funcionpublica},
+  gcmsecret/.style={gcmnode,fill=white,funcionsecreta},
+  gcmlength/.style={etiqueta,font=\sffamily\fontsize{9}{11}\selectfont,inner sep=3pt}
+]
+  % Inputs target the outer boundary: both processing paths share this context.
+  \draw[funcioncripto,rounded corners=2pt] (3.6,-2) rectangle (12.5,-17.7);
+  \node[font=\sffamily\fontsize{14}{16}\selectfont\bfseries]
+    at (8,-2.65) {AES-128-GCM};
+  \node[font=\sffamily\fontsize{9}{11}\selectfont,align=center]
+    at (8,-3.3) {(shared key $K$; $J_0=N\,\Vert\,0^{31}\,\Vert\,1$)};
+
+  \node[gcmsecret] (key) at (1,0)
+    {\gcmblock{$K$}{Secret key}{AES-128}};
+  \node[gcmpublic] (nonce) at (9,0)
+    {\gcmblock{$N$}{Nonce}{unique under the same key}};
+  \draw[flujo] (key.east) -- node[gcmlength,above] {16 bytes (128 bits)} (6,0) -- (6,-2);
+  \draw[flujo] (nonce.south) -- node[gcmlength,right] {12 bytes (96 bits)} (9,-2);
+
+  \node[gcmnode,funcioncripto] (stream) at (8,-5)
+    {\gcmblock{CTR}{Counter Mode}{AES encrypts counter blocks;\\start at $J_0+1$}};
+  \node[gcmnode,funcioncripto] (encrypt) at (8,-8.2)
+    {\gcmblock{$\oplus$}{Exclusive OR}{plaintext and counter stream}};
+  \node[gcmsecret] (plain) at (1,-8.2)
+    {\gcmblock{$M$}{Plaintext file}{no padding required}};
+  \node[gcmpublic] (cipher) at (15,-8.2)
+    {\gcmblock{$C$}{Ciphertext}{same length as $M$}};
+
+  \draw[flujo] (stream.south) -- node[gcmlength,right] {$n$ bytes ($8n$ bits)} (encrypt.north);
+  \draw[flujo] (plain.east) -- node[gcmlength,above] {$n$ bytes ($8n$ bits)} (encrypt.west);
+  \draw[flujo] (encrypt.east) -- node[gcmlength,above] {$n$ bytes ($8n$ bits)} (cipher.west);
+
+  \node[gcmpublic] (aad) at (1,-11.5)
+    {\gcmblock{AAD}{Additional Authenticated Data}{public metadata; not encrypted}};
+  \node[gcmnode,funcioncripto] (hash) at (8,-11.5)
+    {\gcmblock{GHASH}{Galois-field hash}{$H=\operatorname{AES}_K(0^{128})$;\\process $A$, $C$ and their lengths}};
+  \draw[flujo] (encrypt.south) -- node[gcmlength,right] {$C$: $n$ bytes ($8n$ bits)} (hash.north);
+  \draw[flujo] (aad.east) -- node[gcmlength,above] {$A$: $a$ bytes\\($8a$ bits)} (hash.west);
+
+  \node[gcmnode,funcioncripto] (mask) at (6,-16)
+    {\gcmblock{AES}{Advanced Encryption Standard}{$E=\operatorname{AES}_K(J_0)$}};
+  \node[gcmnode,text width=20mm,funcioncripto] (combine) at (11,-16)
+    {\gcmblock{$\oplus$}{Exclusive OR}{$T=G\oplus E$}};
+  \node[gcmpublic] (tag) at (11,-20)
+    {\gcmblock{$T$}{Authentication tag}{integrity and authenticity}};
+
+  \draw[flujo] (hash.south) -- (8,-14.2)
+    -- node[gcmlength,above] {$G$: 16 bytes\\(128 bits)} (11,-14.2) -- (combine.north);
+  \draw[flujo] (mask.east) -- node[gcmlength,below] {16 bytes\\(128 bits)} (combine.west);
+  \draw[flujo] (combine.south) -- node[gcmlength,right,pos=0.8] {16 bytes\\(128 bits)} (tag.north);
+
+  \leyendaFunciones{(8,-21.8)}
+\end{tikzpicture}
+\endgroup
