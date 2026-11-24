@@ -1,4 +1,3 @@
-# Productos de compilación; tarea.pdf y recursos PDF sí se conservan.
 build/
 *.aux
 *.fdb_latexmk
@@ -9,3 +8,5 @@ build/
 *.toc
 .DS_Store
 ./scripts/workspace/
+.vscode
+*.latexmkrc
