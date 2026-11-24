@@ -1,0 +1,21 @@
+$ ./gen-files.sh
+GENERATED: file-01
+    1024 ../crypto-workspace/originals/pregunta-1/file-01.bin
+GENERATED: file-02
+    1025 ../crypto-workspace/originals/pregunta-1/file-02.bin
+GENERATED: file-03
+    1026 ../crypto-workspace/originals/pregunta-1/file-03.bin
+GENERATED: file-04
+    1027 ../crypto-workspace/originals/pregunta-1/file-04.bin
+GENERATED: file-05
+    1028 ../crypto-workspace/originals/pregunta-1/file-05.bin
+GENERATED: file-06
+    1029 ../crypto-workspace/originals/pregunta-1/file-06.bin
+GENERATED: file-07
+    1030 ../crypto-workspace/originals/pregunta-1/file-07.bin
+GENERATED: file-08
+    1031 ../crypto-workspace/originals/pregunta-1/file-08.bin
+GENERATED: file-09
+    1032 ../crypto-workspace/originals/pregunta-1/file-09.bin
+GENERATED: file-10
+    1033 ../crypto-workspace/originals/pregunta-1/file-10.bin

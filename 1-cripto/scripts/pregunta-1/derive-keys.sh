@@ -5,9 +5,12 @@
 set -eu
 umask 077
 
-workspace='./crypto-workspace'
+workspace='../crypto-workspace'
 output="$workspace/secrets/derived-keys"
 iterations=600000
+
+# Validate the master key and all salts before deriving any keys.
+sh ./check-inputs.sh >/dev/null
 
 # Read the binary master key as hexadecimal.
 master_hex=$(od -An -v -tx1 "$workspace/secrets/master_key.bin" | tr -d '[:space:]')

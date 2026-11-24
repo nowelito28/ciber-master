@@ -1,0 +1,3 @@
+$ ./verify.sh
+Verified OK
+ACCEPT: valid signature for ../crypto-workspace/originals/tarea.pdf

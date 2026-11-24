@@ -1,0 +1,129 @@
+\section{Pregunta 2. Cifrado autenticado con AES-GCM}
+\label{sec:pregunta2}
+
+\begin{enunciado}{(2,5 puntos)}
+Utilizando Openssl cifre un fichero usando el algoritmo autenticado AES-GCM
+\end{enunciado}
+
+\subsection{Análisis}
+
+El objetivo es proteger un fichero mediante AES (Advanced Encryption Standard) en modo GCM (Galois/Counter Mode), proporcionando confidencialidad, integridad y autenticidad. Se empleará AES-128-GCM con una clave de contenido $K_i^{\mathrm{GCM}}$ de 16 bytes (128 bits), siguiendo la recomendación del tema 1.2 \ref{ref:slides-gcm}. El índice $i$ identifica el fichero.
+
+\textbf{Cifrado y Autenticación:} Para cifrar el fichero original $M_i$ se generará un vector de inicialización público $V_i$ (Initialization Vector) de 12 bytes (96 bits), longitud recomendada para GCM. No debe repetirse con la misma clave. AAD (Additional Authenticated Data) representa los metadatos públicos $A$ incluidos en la etiqueta para detectar modificaciones; en estos scripts será vacío, al no añadir metadatos propios \ref{ref:nist-gcm}.
+
+A partir de $V_i$ se obtiene el contador inicial $J_0$. El modo CTR (Counter Mode) utiliza los contadores siguientes, $J_1$, $J_2$, etc., que AES cifra con $K_i^{\mathrm{GCM}}$. Sus resultados se combinan con $M_i$ mediante XOR (Exclusive OR) para obtener $C_i$ (contenido cifrado). El bloque de contenido a cifrar puede ser parcial, el cifrado no añade relleno \ref{ref:tema-gcm}.
+
+Para autenticar los datos, GCM calcula internamente $H$ cifrando un bloque de ceros con la misma clave $K_i^{\mathrm{GCM}}$. GHASH utiliza $H$ para encadenar los metadatos $A$, el criptograma $C_i$ y sus longitudes. Su resultado se combina mediante XOR con el cifrado de $J_0$ para obtener la etiqueta $T_i$ de 16 bytes. Por tanto, las claves auxiliares $K_i^{\mathrm{mac}}$ generadas en la pregunta 1 para HMAC no intervienen: GCM incorpora su propio mecanismo de autenticación \ref{ref:tema-aead}, \ref{ref:nist-gcm}.
+
+El contenedor conservará $V_i$, $C_i$, $T_i$ y la clave de contenido protegida. La clave derivada que permite recuperarla permanecerá separada y secreta. El contenido recuperado solo se aceptará si la etiqueta coincide con la recalculada \ref{ref:nist-gcm}.
+
+En el esquema, \texttt{inc} incrementa el contador; $\ell(A)$ y $\ell(C_i)$ indican las longitudes en bits y $\Vert$ representa concatenación. Los superíndices $(1)$ y $(N)$ y los puntos suspensivos abarcan del primer bloque al último. GHASH completa internamente los bloques parciales para su cálculo, sin modificar el tamaño del criptograma.
+
+\clearpage
+\begin{figure}[H]
+  \centering
+  \resizebox{!}{0.74\textheight}{\input{recursos/esquemas/04-aes-gcm}}
+  \caption{Cifrado y autenticación de los bloques $1,\ldots,N$ del fichero $i$ mediante AES-GCM. Adaptación vectorial del esquema del tema 1.4, p.~22 (\ref{ref:tema-aead}).}
+  \label{fig:p2-aes-gcm}
+\end{figure}
+
+\textbf{Descifrado y Verificación:} La entrada será el fichero protegido: se leerán de él el contenido cifrado $C_i$, el vector $V_i$, la etiqueta $T_i$ y los metadatos $A$. La clave derivada $K_1^{\mathrm{cif}}$ se facilitará por separado para recuperar $K_i^{\mathrm{GCM}}$; se emplearán los mismos valores utilizados al cifrar.
+
+\clearpage
+A partir de $V_i$, AES reproducirá el flujo de contadores y lo combinará mediante XOR con $C_i$ para recuperar $M_i$. Por tanto, el contenido cifrado es la entrada de esta operación y el mensaje original es su salida provisional. Aunque se esté descifrando el fichero, AES sigue cifrando los contadores.
+
+GCM recalculará también $T_i^{\prime}$ sobre el criptograma recibido y los metadatos, y lo comparará en tiempo constante con $T_i$. Si coinciden, se aceptará $M_i$; si no, se eliminará el archivo de salida provisional. No se generará otro vector ni se retirará relleno \ref{ref:nist-gcm}.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{!}{0.7\textheight}{\input{recursos/esquemas/05-aes-gcm-descifrado}}
+  \caption{Descifrado y recuperación del fichero original a partir del fichero protegido mediante AES-GCM. Adaptación del flujo de descifrado de GCM (\ref{ref:tema-aead}, \ref{ref:nist-gcm}).}
+  \label{fig:p2-aes-gcm-descifrado}
+\end{figure}
+\clearpage
+
+La implementación utilizará scripts de shell y el comando \texttt{openssl cms}, compatible con AES-GCM; \texttt{openssl enc} no admite este modo. CMS (Cryptographic Message Syntax) genera la clave de contenido $K_i^{\mathrm{GCM}}$ y la protege con la primera clave derivada de la pregunta 1, $K_1^{\mathrm{cif}}$, utilizada como KEK (Key Encryption Key). Así, la clave derivada permite recuperar la clave que cifra y autentica el fichero; no cifra directamente sus bloques. El contenedor conserva la clave de contenido protegida, el vector, el criptograma y la etiqueta \ref{ref:openssl-gcm}.
+
+OpenSSL realiza internamente CTR, GHASH y la comprobación de la etiqueta. Los scripts escribirán directamente en las carpetas \texttt{encrypted} y \texttt{decrypted} del workspace, sobrescribiendo la salida existente. Durante el descifrado, el archivo será provisional hasta finalizar la autenticación; si la operación falla, se eliminará. Solo se utilizará tras el mensaje de éxito.
+
+\subsection{Implementación y validación}
+La implementación se realizó mediante los scripts \texttt{encrypt.sh} y \texttt{decrypt.sh}, compatibles con \texttt{/bin/sh} y ejecutados desde \texttt{scripts/pregunta-2}. Se utilizó como fichero a cifrar y descifrar una copia del enunciado, \texttt{tarea.pdf}, conservada en \texttt{originals} del workspace común. Se empleó la primera clave simétrica de cifrado derivada en la pregunta 1. Las salidas se almacenaron en \texttt{encrypted} y \texttt{decrypted}, manteniendo separado el original.
+
+Se parte del espacio de trabajo \texttt{crypto-workspace} inicializado, con el fichero original y las claves generadas.
+
+\noindent\begin{minipage}{\linewidth}
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,
+ caption={Directorio de ejecución y comprobación de las entradas.},
+ label={lst:p2-entradas-real}]{recursos/salidas/pregunta-2/entradas.txt}
+\endgroup
+\end{minipage}
+
+\textbf{Cifrado del fichero:} El script \texttt{encrypt.sh} establece las rutas de entrada, clave y salida; también permite indicarlas como argumentos. Comprueba la disponibilidad de OpenSSL, la existencia del original y el tamaño de la clave. Mediante \texttt{od} y \texttt{tr}, convierte sus bytes a hexadecimal para proporcionarlos a \texttt{openssl cms}.
+
+La opción \texttt{-aes-128-gcm} selecciona el algoritmo y \texttt{-binary} evita conversiones de los bytes del PDF. Con \texttt{-secretkey}, la clave derivada actúa como KEK y protege la clave de contenido generada internamente; \texttt{-secretkeyid 01} identifica esa clave, sin incorporar metadatos AAD. El resultado se guarda en un contenedor CMS con codificación DER (Distinguished Encoding Rules) \ref{ref:openssl-gcm}.
+
+Antes de escribir, comprueba que el destino no sea el original ni la clave, incluidos los enlaces a esos archivos. Puede sobrescribir otras salidas anteriores y restringe sus permisos al propietario mediante \texttt{chmod 600}. Las órdenes \texttt{trap} eliminan la salida si la operación falla o se recibe una de las señales indicadas. Al finalizar correctamente, se desactiva esa limpieza y \texttt{wc -c} muestra los tamaños obtenidos.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Cifrado de un fichero mediante AES-128-GCM: encrypt.sh.},
+ label={lst:p2-encrypt-completo}]{recursos/listados/pregunta-2/encrypt.sh}
+\endgroup
+
+La ejecución produjo el siguiente contenedor protegido:
+
+\noindent\begin{minipage}{\linewidth}
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,
+ caption={Ejecución del cifrado y tamaños del original y del contenedor.},
+ label={lst:p2-cifrado-real}]{recursos/salidas/pregunta-2/cifrado.txt}
+\endgroup
+\end{minipage}
+
+El archivo \texttt{tarea.pdf.cms} ocupó 1\,560\,811 bytes: 153 bytes más que el original. Este incremento corresponde a la estructura CMS y a los parámetros y la clave protegida que contiene, además de la etiqueta; no constituye relleno del mensaje aplicado por GCM.
+
+\textbf{Descifrado y autenticación:} El script \texttt{decrypt.sh} recibe el contenedor y utiliza la misma clave derivada. Comprueba que la salida no coincida con el contenedor ni con la clave, incluidos sus enlaces. Antes de crear la salida, inspecciona el contenedor con \texttt{openssl cms -cmsout -print}. Después comprueba con \texttt{grep} el tipo \texttt{AuthEnvelopedData} y el algoritmo AES-128-GCM.
+
+La operación \texttt{cms -decrypt} recupera la clave de contenido y utiliza el vector y la etiqueta almacenados para descifrar y verificar el fichero. La salida se escribe directamente en \texttt{decrypted}, con permisos restringidos, y permanece provisional hasta que OpenSSL confirma el éxito. Si el descifrado o la autenticación fallan, el script termina con error y elimina ese archivo; si tienen éxito, conserva el fichero recuperado y muestra su tamaño.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Descifrado y autenticación de un fichero protegido mediante AES-128-GCM: decrypt.sh.},
+ label={lst:p2-decrypt-completo}]{recursos/listados/pregunta-2/decrypt.sh}
+\endgroup
+
+La ejecución confirmó el descifrado y la autenticación, obteniendo de nuevo un PDF de 1\,560\,658 bytes:
+
+\noindent\begin{minipage}{\linewidth}
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,
+ caption={Ejecución del descifrado con autenticación satisfactoria.},
+ label={lst:p2-descifrado-real}]{recursos/salidas/pregunta-2/descifrado.txt}
+\endgroup
+\end{minipage}
+
+Finalmente, se compararon el original y el recuperado mediante \texttt{cmp}, que comprueba su igualdad byte a byte. La orden encadenada con \texttt{\&\&} solo muestra el mensaje \texttt{PASS} si la comparación termina sin diferencias:
+
+\noindent\begin{minipage}{\linewidth}
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,
+ caption={Comparación exacta del PDF original y el recuperado.},
+ label={lst:p2-comparacion-real}]{recursos/salidas/pregunta-2/comparacion.txt}
+\endgroup
+\end{minipage}
+
+La ejecución confirma que el fichero se cifró mediante AES-128-GCM y se recuperó con autenticación satisfactoria, conservando exactamente los mismos bytes del original.
+

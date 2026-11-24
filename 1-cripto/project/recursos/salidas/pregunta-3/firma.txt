@@ -1,0 +1,5 @@
+$ ./sign.sh
+SIGNED: ../crypto-workspace/originals/tarea.pdf -> ../crypto-workspace/signatures/tarea.pdf.sig
+ 1560658 ../crypto-workspace/originals/tarea.pdf
+      70 ../crypto-workspace/signatures/tarea.pdf.sig
+ 1560728 total

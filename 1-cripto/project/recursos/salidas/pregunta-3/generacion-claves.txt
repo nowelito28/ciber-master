@@ -1,0 +1,13 @@
+$ ./gen-keys.sh
+Key is valid
+Key is valid
+KEYS GENERATED: ../crypto-workspace/secrets/ec-keys/p256.private.pem ; ../crypto-workspace/metadata/public-keys/p256.public.pem
+Public-Key: (256 bit field, 128 bit security level)
+pub:
+    04:f8:47:12:4a:a4:71:22:b4:b9:52:13:59:fb:5a:cb:
+    3b:88:1c:74:60:4f:73:b2:2f:9a:6e:6f:83:52:82:c4:
+    b5:2f:14:99:7c:60:62:c6:74:75:e7:5a:ea:59:18:ec:
+    0f:5d:00:74:b2:63:78:84:c4:c3:29:1b:15:78:f3:c1:
+    c9
+ASN1 OID: prime256v1
+NIST CURVE: P-256

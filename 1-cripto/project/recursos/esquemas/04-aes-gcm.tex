@@ -1,0 +1,100 @@
+% Vector adaptation of topic 1.4, page 22: blocks 1 through N.
+\begingroup
+\setstretch{1}
+\hyphenpenalty=10000
+\newcommand{\gcmblock}[3]{%
+  {\fontsize{12}{14}\selectfont\bfseries\boldmath #1}\\[3pt]
+  {\fontsize{9}{11}\selectfont\mdseries #2}\\[2pt]
+  {\fontsize{8}{10}\selectfont\mdseries (#3)}%
+}
+\begin{tikzpicture}[x=1cm,y=0.85cm,
+  box/.style={proceso,text width=26mm,minimum height=12mm,inner sep=5pt},
+  public/.style={box,fill=white,funcionpublica},
+  private/.style={box,fill=white,funcionsecreta},
+  crypto/.style={box,funcioncripto},
+  sum/.style={circle,draw=BordeCripto,line width=0.9pt,fill=white,
+    minimum size=7mm,inner sep=0pt,font=\fontsize{15}{16}\selectfont,
+    label={[font=\sffamily\fontsize{7}{9}\selectfont,inner sep=2pt]right:XOR}},
+  gcmstep/.style={box,text width=11mm,minimum height=10mm,inner sep=3pt,funcionformato},
+  size/.style={etiqueta,fill=none,font=\sffamily\fontsize{8}{10}\selectfont,inner sep=1pt}
+]
+  \node[public] (nonce) at (0,2.4)
+    {\gcmblock{$V_i$}{Initialization vector}{12 bytes; public}};
+  \node[public] (ctr0) at (0,0)
+    {\gcmblock{$J_0$}{Counter 0}{from vector $V_i$}};
+  \node[gcmstep] (inc1) at (3.2,0)
+    {{\bfseries inc}\\{\fontsize{8}{10}\selectfont (32-bit)}};
+  \node[public] (ctr1) at (6.4,0)
+    {\gcmblock{$J_1$}{Counter 1}{increment $J_0$}};
+  \node[font=\fontsize{20}{22}\selectfont] (inc2) at (9.6,0) {$\cdots$};
+  \node[public] (ctr2) at (12.8,0)
+    {\gcmblock{$J_N$}{Counter $N$}{repeated increments}};
+  \draw[flujo] (nonce.south) -- node[size,right] {12 bytes (96 bits)} (ctr0.north);
+  \draw[flujo] (ctr0.east) -- (inc1.west);
+  \draw[flujo] (inc1.east) -- (ctr1.west);
+  \draw[flujo] (ctr1.east) -- (inc2.west);
+  \draw[flujo] (inc2.east) -- (ctr2.west);
+
+  \foreach \i/\xx in {0/0,1/6.4,2/12.8}{
+    \node[crypto] (aes\i) at (\xx,-2.6)
+      {\gcmblock{AES-128}{AES encryption}{key $K_i^{\mathrm{GCM}}$}};
+    \draw[flujo] (ctr\i.south) -- node[size,right] {16 bytes (128 bits)} (aes\i.north);
+  }
+  \node[font=\fontsize{20}{22}\selectfont] at (9.6,-2.6) {$\cdots$};
+  \node[sum] (xor1) at (6.4,-5.2) {$\oplus$};
+  \node[sum] (xor2) at (12.8,-5.2) {$\oplus$};
+  \node[private,text width=24mm] (plain1) at (3.2,-5.2)
+    {\gcmblock{$M_i^{(1)}$}{Plaintext 1}{first block}};
+  \node[private,text width=24mm] (plain2) at (9.6,-5.2)
+    {\gcmblock{$M_i^{(N)}$}{Plaintext $N$}{last block}};
+  \draw[flujo] (aes1.south) -- node[size,right,pos=0.3] {16 bytes (128 bits)} (xor1.north);
+  \draw[flujo] (aes2.south) -- node[size,right,pos=0.3] {16 bytes (128 bits)} (xor2.north);
+  \draw[flujo] (plain1.east) -- (xor1.west);
+  \draw[flujo] (plain2.east) -- (xor2.west);
+  \node[public] (cipher1) at (6.4,-7)
+    {\gcmblock{$C_i^{(1)}$}{Ciphertext 1}{16 bytes}};
+  \node[public] (cipher2) at (12.8,-7)
+    {\gcmblock{$C_i^{(N)}$}{Ciphertext $N$}{up to 16 bytes}};
+  \node[font=\fontsize{20}{22}\selectfont] at (9.6,-7) {$\cdots$};
+  \draw[flujo] (xor1.south) -- (cipher1.north);
+  \draw[flujo] (xor2.south) -- (cipher2.north);
+
+  \node[sum] (hashxor1) at (6.4,-9) {$\oplus$};
+  \node[sum] (hashxor2) at (12.8,-9) {$\oplus$};
+  \node[crypto] (mult0) at (3.2,-10.9)
+    {\gcmblock{GHASH}{Galois-field hash}{step: multiply by $H$}};
+  \node[crypto] (mult1) at (6.4,-10.9)
+    {\gcmblock{GHASH}{Galois-field hash}{step: multiply by $H$}};
+  \node[crypto] (mult2) at (12.8,-10.9)
+    {\gcmblock{GHASH}{Galois-field hash}{step: multiply by $H$}};
+  \node[public] (aad) at (3.2,-14.5)
+    {\gcmblock{AAD}{Additional Authenticated Data}{public input $A$}};
+  \draw[flujo] (aad.north) -- node[size,left] {16 bytes (128 bits)} (mult0.south);
+  \draw[flujo] (mult0.north) -- (3.2,-9) -- (hashxor1.west);
+  \draw[flujo] (cipher1.south) -- (hashxor1.north);
+  \draw[flujo] (hashxor1.south) -- (mult1.north);
+  \draw[flujo] (mult1.east) -- (8.1,-10.9) -- (8.1,-9) -- (9,-9);
+  \node[font=\fontsize{20}{22}\selectfont] at (9.6,-9) {$\cdots$};
+  \draw[flujo] (10.2,-9) -- (hashxor2.west);
+  \draw[flujo] (cipher2.south) -- (hashxor2.north);
+  \draw[flujo] (hashxor2.south) -- (mult2.north);
+
+  \node[sum] (lengthxor) at (12.8,-13.6) {$\oplus$};
+  \node[box,text width=32mm,funcionformato] (lengths) at (8.9,-13.6)
+    {\gcmblock{$\ell(A)\,\Vert\,\ell(C_i)$}{Bit-length encoding}{64 bits per length}};
+  \draw[flujo] (mult2.south) -- (lengthxor.north);
+  \draw[flujo] (lengths.east) -- (lengthxor.west);
+  \node[crypto] (mult3) at (12.8,-15.8)
+    {\gcmblock{GHASH}{Galois-field hash}{final step: multiply by $H$}};
+  \draw[flujo] (lengthxor.south) -- (mult3.north);
+
+  \node[sum] (tagxor) at (12.8,-18.2) {$\oplus$};
+  \draw[flujo] (mult3.south) -- node[size,right] {16 bytes (128 bits)} (tagxor.north);
+  \draw[flujo] (aes0.south) -- (0,-18.2)
+    -- node[size,above,pos=0.56] {16 bytes (128 bits)} (tagxor.west);
+  \node[public] (tag) at (12.8,-20.3)
+    {\gcmblock{$T_i$}{Authentication tag}{16 bytes; 128 bits}};
+  \draw[flujo] (tagxor.south) -- (tag.north);
+  \leyendaFunciones{(6.4,-22)}
+\end{tikzpicture}
+\endgroup

@@ -1,0 +1,69 @@
+\section{Pregunta 1. Claves y cifrado de ficheros}
+\label{sec:pregunta1}
+
+\begin{enunciado}{(5 puntos)}
+Encuentre la mejor solución para dada una clave de usuario de 128 bits generar 10 claves que permitan cifrar 10 ficheros, cada uno con una clave diferente. Implemente la solución para cifrar y descifrar dichos ficheros (su contenido no es relevante).
+
+Pista: Openssl y scripts le ayudarán en esta tarea.
+\end{enunciado}
+
+\subsection{Análisis}
+
+El objetivo es obtener diez claves de cifrado diferentes a partir de una clave de usuario de 128 bits, para proteger diez ficheros y recuperarlos posteriormente. Se mantiene como secreto inicial una clave maestra binaria aleatoria $K_M$, de 16 bytes; no se utiliza el contenido de los ficheros para generar las claves.
+
+La derivación de claves se realizará mediante PBKDF2 (Password-Based Key Derivation Function~2) con HMAC (Hash-based Message Authentication Code) y SHA-256 (Secure Hash Algorithm, con salida de 256 bits).
+Con la clave simétrica maestra adecuadamente generada, conocer una clave derivada no permite recuperar de forma computacionalmente viable la maestra ni calcular el resto de claves implicadas o generadas.
+
+Esta función KDF (Key Derivation Function) permitirá obtener, para cada fichero $i$, una clave derivada intermedia $\mathrm{DK}_i$ (Derived Key) de longitud $L=48$ bytes a partir de la clave simétrica maestra $K_M$ de 16 bytes, una sal pública aleatoria $S_i$ de 16 bytes (128 bits) distinta para cada fichero y un número de iteraciones $c$ que determina el coste del cálculo. La longitud de la sal reduce la probabilidad de repetición y no depende del tamaño de la maestra, del resumen ni de la salida.
+
+\begin{samepage}
+\[
+  \mathrm{DK}_i=\operatorname{PBKDF2\text{-}HMAC\text{-}SHA\text{-}256}
+  (K_M,S_i,c,L).
+\]
+El procedimiento se fundamenta en el desarrollo del tema 1.4 y sus diapositivas \ref{ref:tema-kdf}, y se implementará con OpenSSL \ref{ref:openssl-pbkdf2} en un sistema macOS.
+\end{samepage}
+Se fija $c=600\,000$ iteraciones como coste de derivación. La salida de 48 bytes se dividirá en dos segmentos sin solapamiento: los primeros 16 bytes (128 bits) serán la clave de cifrado $K_i^{\mathrm{cif}}$ y los 32 bytes (256 bits) restantes, la clave auxiliar de autenticación $K_i^{\mathrm{mac}}$. Las diez claves exigidas son las de cifrado; las auxiliares permiten añadir Encrypt-then-MAC (cifrar y después autenticar).
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{\input{recursos/esquemas/01-derivacion-claves}}
+  \caption{Generación de claves simétricas de cifrado y autenticación mediante PBKDF2 a partir de una clave simétrica maestra única y una sal por fichero. Elaboración propia a partir del tema 1.4 y de la especificación de PBKDF2 (\ref{ref:tema-kdf}, \ref{ref:rfc-pbkdf2}).}
+  \label{fig:p1-derivacion}
+\end{figure}
+
+PBKDF2 utiliza $K_M$ como clave de HMAC, procesa la sal y aplica el cálculo de HMAC repetidamente, combinando los resultados mediante una operación XOR (Exclusive OR) por bloque de salida en función del número de iteraciones escogido (aumentan el coste del cálculo).
+Las sales distintas permiten obtener claves diferentes para cada fichero. La partición asigna bytes diferentes al cifrado y a la autenticación: se realiza una sola derivación de 48 bytes por fichero, no dos derivaciones con la misma sal y longitudes diferentes \ref{ref:rfc-pbkdf2}.
+
+Se conservarán la sal pública por fichero, el identificador, las iteraciones y los algoritmos para reconstruir ambas claves con $K_M$ al descifrar. Los 48 bytes (384 bits) de salida no aumentan la entropía de la clave maestra, que sigue siendo de 128 bits.
+
+El cifrado empleará AES (Advanced Encryption Standard) con claves simétricas de 128 bits (16 bytes) en modo CBC (Cipher Block Chaining), un vector de inicialización aleatorio de 16 bytes por operación y relleno PKCS\#7 (Public-Key Cryptography Standards, number~7), conforme al tema 1.2 \ref{ref:tema-aes}.
+
+Como CBC no detecta por sí mismo modificaciones maliciosas, se añadirá un MAC (Message Authentication Code) mediante HMAC-SHA-256, siguiendo la composición Encrypt-then-MAC estudiada en el tema 1.4 \ref{ref:tema-kdf}.
+
+La clave $K_i^{\mathrm{mac}}$, distinta de la utilizada por AES para cifrar, permitirá autenticar el criptograma, el vector de inicialización y los metadatos de recuperación.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{\input{recursos/esquemas/02-cifrado-autenticacion}}
+  \caption{Cifrado y autenticación de un fichero con el método Encrypt-then-MAC. El vector $V_i$ es aleatorio y la cabecera se autentica junto al criptograma. Elaboración propia a partir de los temas 1.2 y 1.4 (\ref{ref:tema-aes}, \ref{ref:tema-kdf}).}
+  \label{fig:p1-cifrado}
+\end{figure}
+
+Finalmente, se reconstruirán las claves mediante PBKDF2 con $K_M$, $S_i$ y los parámetros originales, incluidas las iteraciones $c$.
+Se recalculará la etiqueta con $K_i^{\mathrm{mac}}$ y se compararán sus 32 bytes completos con la recibida, sin detenerse en la primera diferencia. La implementación en shell no garantiza una ejecución en tiempo constante. Si no coincide, se rechazará el fichero al no poder verificar su integridad y autenticidad.
+Si coincide, se aplicará el descifrado AES-128-CBC con $K_i^{\mathrm{cif}}$ y el vector de inicialización $V_i$ originales. Tras validar y retirar el relleno PKCS\#7, se entregará la información original.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{\input{recursos/esquemas/03-verificacion-descifrado}}
+  \caption{Verificación de la autenticidad del fichero y descifrado del mismo. Las claves se reconstruyen mediante PBKDF2 con la sal y el número de iteraciones conservados. Elaboración propia a partir de los temas 1.2 y 1.4 (\ref{ref:tema-aes}, \ref{ref:tema-kdf}).}
+  \label{fig:p1-descifrado}
+\end{figure}
+
+La solución separa las claves por fichero y por finalidad, manteniendo un único secreto principal.
+Sin embargo, derivar más claves no incrementa la entropía de la clave maestra: su protección sigue siendo esencial, ya que su compromiso afectaría a la protección de todos los ficheros.
+
+
+\subsection{Implementación y validación}
+\input{secciones/ejercicios/pregunta-1/preparacion-y-derivacion}

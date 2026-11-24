@@ -1,0 +1,11 @@
+$ cp ../crypto-workspace/originals/tarea.pdf \
+    ../crypto-workspace/originals/tarea-modified.pdf
+$ printf '\nModified copy for signature validation.\n' \
+    >> ../crypto-workspace/originals/tarea-modified.pdf
+$ ./verify.sh ../crypto-workspace/originals/tarea-modified.pdf \
+    ../crypto-workspace/metadata/public-keys/p256.public.pem \
+    ../crypto-workspace/signatures/tarea.pdf.sig
+Verification failure
+40E2F0FA01000000:error:0308010C:digital envelope routines:inner_evp_generic_fetch:unsupported:crypto/evp/evp_fetch.c:476:Global default library context, Algorithm (dgst : 0), Properties (<null>)
+40E2F0FA01000000:error:030000EA:digital envelope routines:EVP_DigestVerifyFinal:provider signature failure:crypto/evp/m_sigver.c:533:ECDSA digest_verify_final:
+REJECT: invalid signature for ../crypto-workspace/originals/tarea-modified.pdf

@@ -1,0 +1,8 @@
+$ pwd
+/home/user/1-cripto/scripts
+$ cd pregunta-2
+$ wc -c ../crypto-workspace/originals/tarea.pdf \
+    ../crypto-workspace/secrets/derived-keys/file-01.encryption.bin
+ 1560658 ../crypto-workspace/originals/tarea.pdf
+      16 ../crypto-workspace/secrets/derived-keys/file-01.encryption.bin
+ 1560674 total

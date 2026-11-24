@@ -1,0 +1,21 @@
+$ ./decrypt-files.sh
+VERIFIED AND DECRYPTED: file-01 (PBKDF2: 600000 iterations)
+    1024 ../crypto-workspace/decrypted/pregunta-1/file-01.bin
+VERIFIED AND DECRYPTED: file-02 (PBKDF2: 600000 iterations)
+    1025 ../crypto-workspace/decrypted/pregunta-1/file-02.bin
+VERIFIED AND DECRYPTED: file-03 (PBKDF2: 600000 iterations)
+    1026 ../crypto-workspace/decrypted/pregunta-1/file-03.bin
+VERIFIED AND DECRYPTED: file-04 (PBKDF2: 600000 iterations)
+    1027 ../crypto-workspace/decrypted/pregunta-1/file-04.bin
+VERIFIED AND DECRYPTED: file-05 (PBKDF2: 600000 iterations)
+    1028 ../crypto-workspace/decrypted/pregunta-1/file-05.bin
+VERIFIED AND DECRYPTED: file-06 (PBKDF2: 600000 iterations)
+    1029 ../crypto-workspace/decrypted/pregunta-1/file-06.bin
+VERIFIED AND DECRYPTED: file-07 (PBKDF2: 600000 iterations)
+    1030 ../crypto-workspace/decrypted/pregunta-1/file-07.bin
+VERIFIED AND DECRYPTED: file-08 (PBKDF2: 600000 iterations)
+    1031 ../crypto-workspace/decrypted/pregunta-1/file-08.bin
+VERIFIED AND DECRYPTED: file-09 (PBKDF2: 600000 iterations)
+    1032 ../crypto-workspace/decrypted/pregunta-1/file-09.bin
+VERIFIED AND DECRYPTED: file-10 (PBKDF2: 600000 iterations)
+    1033 ../crypto-workspace/decrypted/pregunta-1/file-10.bin

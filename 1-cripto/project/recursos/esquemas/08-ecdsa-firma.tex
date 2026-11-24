@@ -1,0 +1,55 @@
+% ECDSA signing, adapted from topic 1.5, slides 19-21.
+% SHA-256 with P-256 is the choice made for this practice.
+\begingroup
+\setstretch{1}
+\hyphenpenalty=10000
+\newcommand{\ecdsablock}[3]{%
+ {\fontsize{13}{15}\selectfont\bfseries\boldmath #1}\\[4pt]
+ {\fontsize{10}{12}\selectfont #2}\\[3pt]
+ {\fontsize{8}{10}\selectfont (#3)}%
+}
+\begin{tikzpicture}[x=1cm,y=1cm,
+ box/.style={proceso,text width=29mm,minimum height=20mm,inner sep=6pt},
+ size/.style={etiqueta,fill=none,font=\sffamily\fontsize{9}{11}\selectfont}]
+ \node[box,fill=white,funcionpublica] (file) at (0,0)
+   {\ecdsablock{$M_i$}{Original file}{unchanged by signing}};
+ \node[box,funcioncripto] (hash) at (4.5,0)
+   {\ecdsablock{SHA-256}{Secure Hash Algorithm}{hash the file bytes}};
+ \node[box,fill=white,funcionpublica] (digest) at (9,0)
+   {\ecdsablock{$z$}{Digest as an integer}{32 bytes; 256 bits}};
+
+ \node[box,fill=white,funcionsecreta] (nonce) at (0,-3.4)
+   {\ecdsablock{$k$}{Per-signature secret}{random; $1\leq k<n$}};
+ \node[box,fill=white,funcionpublica] (params) at (4.5,-3.4)
+   {\ecdsablock{$E,\ G,\ n$}{Curve parameters}{P-256; base point; order}};
+ \node[box,fill=white,funcionsecreta] (private) at (9,-3.4)
+   {\ecdsablock{$d_A$}{Private key}{$1\leq d_A<n$}};
+
+ \node[box,funcioncripto] (point) at (0,-6.8)
+   {\ecdsablock{$R=kG$}{Point multiplication}{$R=(x_R,y_R)$}};
+ \node[box,funcioncripto] (r) at (4.5,-6.8)
+   {\ecdsablock{$r$}{First signature value}{$r=x_R\bmod n$;\\retry with a new $k$ if $r=0$}};
+ \node[box,funcioncripto,text width=37mm] (s) at (9,-6.8)
+   {\ecdsablock{$s$}{Second signature value}{$s=k^{-1}(z+r d_A)\bmod n$;\\retry with a new $k$ if $s=0$}};
+ \node[box,fill=white,funcionpublica,text width=37mm] (signature) at (9,-11)
+   {\ecdsablock{$\sigma_i=(r,s)$}{Detached signature}{stored separately from $M_i$;\\neither $d_A$ nor $k$ is included}};
+
+ \draw[flujo] (file.east) -- (hash.west);
+ \draw[flujo] (hash.east) -- (digest.west);
+ \draw[flujo] (params.west) -- node[size,above] {$n$} (nonce.east);
+ \draw[flujo] (nonce.south) -- node[size,left] {$k$} (point.north);
+ \draw[flujo] ([xshift=-8mm]params.south) -- (3.7,-5.1) -- (0.8,-5.1)
+   -- node[size,right] {$E,G$} ([xshift=8mm]point.north);
+ \draw[flujo] (params.south) -- node[size,right] {$n$} (r.north);
+ \draw[flujo] (point.east) -- node[size,above] {$x_R$} (r.west);
+ \draw[flujo] (r.east) -- node[size,above] {$r,n$} (s.west);
+ \draw[flujo] (private.south) -- node[size,right] {$d_A$} (s.north);
+ \draw[flujo] (digest.east) -- (12,0) -- (12,-6.8)
+   -- node[size,above] {$z$} (s.east);
+ \draw[flujo] (nonce.west) -- (-2.5,-3.4) -- (-2.5,-9)
+   -- node[size,above,pos=0.7] {$k$} (8,-9) -- ([xshift=-10mm]s.south);
+ \draw[flujo] ([xshift=10mm]s.south) -- (10,-9.5) -- (9,-9.5)
+   -- node[size,right] {$r,s$} (signature.north);
+ \leyendaFunciones{(4.8,-13.1)}
+\end{tikzpicture}
+\endgroup

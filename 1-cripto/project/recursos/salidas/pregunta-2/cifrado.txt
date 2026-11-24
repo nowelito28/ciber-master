@@ -1,0 +1,5 @@
+$ ./encrypt.sh
+ENCRYPTED: ../crypto-workspace/originals/tarea.pdf -> ../crypto-workspace/encrypted/tarea.pdf.cms
+ 1560658 ../crypto-workspace/originals/tarea.pdf
+ 1560811 ../crypto-workspace/encrypted/tarea.pdf.cms
+ 3121469 total

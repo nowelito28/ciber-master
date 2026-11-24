@@ -1,0 +1,197 @@
+La solución se implementa mediante scripts compatibles con \texttt{/bin/sh}. Todos los recursos de trabajo de la práctica (claves, sales y ficheros originales, cifrados y recuperados) se centralizan en \texttt{scripts/crypto-workspace}. El entorno se prepara con \texttt{scripts/prepare-inputs.sh}; los scripts de cada pregunta se ejecutan desde su directorio. Se empleó OpenSSL~4.1.0, instalado mediante Homebrew en macOS.
+
+\lstinputlisting[firstline=1,lastline=4,caption={Comprobación del entorno de ejecución.},label={lst:p1-entorno-real}]{recursos/salidas/pregunta-1/entorno.txt}
+
+\textbf{Preparación del entorno:} El script central \texttt{scripts/prepare-inputs.sh} crea los directorios comunes, incluidos los destinados a las claves asimétricas y las firmas, y copia el enunciado en \texttt{originals} si no existe. Puede repetirse sin borrar recursos ni generar claves.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Preparación del workspace común: prepare-inputs.sh.},
+ label={lst:workspace-prepare}]{recursos/listados/prepare-inputs.sh}
+\endgroup
+
+\textbf{Generación de claves y sales:}
+El script \texttt{gen-keys.sh} trabaja en el workspace preparado y utiliza \texttt{openssl rand} para generar una clave maestra y diez sales de 16 bytes. 
+\texttt{umask 077} restringe el acceso a los archivos nuevos al usuario propietario, evitando que otros usuarios del sistema puedan acceder a ellos y modificarlos.
+La función \texttt{generate} llama al comprobador antes de confirmar que la inicialización ha finalizado correctamente.
+Si ya existen claves o falla su generación, el script solicita escribir \texttt{DELETE} antes de borrar y recrear todo el workspace. Cualquier otra respuesta conserva los archivos y cancela la ejecución.
+
+\Needspace{9\baselineskip}
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Generación y comprobación de la maestra y las sales: gen-keys.sh.},
+ label={lst:p1-gen-completo}]{recursos/listados/pregunta-1/gen-keys.sh}
+\endgroup
+
+La ejecución registrada de \texttt{gen-keys.sh} confirmó la validación de la maestra y las diez sales. Las salidas conservan las rutas relativas de la ejecución original; los scripts mostrados utilizan el workspace común:
+
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,caption={Ejecución de gen-keys.sh con validación satisfactoria.},label={lst:p1-inicializacion-real}]{recursos/salidas/pregunta-1/inicializacion-validada.txt}
+\endgroup
+
+A continuación se muestran la clave maestra y las dos primeras sales en hexadecimal, consultadas con \texttt{od} para verificar su contenido visualmente.
+Cada par de dígitos representa un byte y cada línea contiene los 16 bytes del archivo.
+
+\begingroup
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize]{recursos/salidas/pregunta-1/maestra-y-sales-hex.txt}
+\endgroup
+
+\textbf{Validación de la generación de claves:} El script \texttt{check-inputs.sh} comprueba que existen tanto la clave maestra como las diez sales, y que cada archivo contiene exactamente 16 bytes.
+Después compara los 45 pares de sales mediante \texttt{cmp -s}. Muestra \texttt{PASS} si todas las comprobaciones se superan; cualquier archivo ausente, tamaño incorrecto o sal repetida provoca un error, sin modificar las entradas.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Validación de la clave maestra y las sales: check-inputs.sh.},
+ label={lst:p1-prepare-completo}]{recursos/listados/pregunta-1/check-inputs.sh}
+\endgroup
+
+\textbf{Derivación y separación de claves:} El script \texttt{derive-keys.sh} aplica PBKDF2 con HMAC-SHA-256 y 600\,000 iteraciones para cada sal, manteniendo la misma clave maestra.
+Los comandos \texttt{od} y \texttt{tr} representan las entradas binarias en hexadecimal; las opciones \texttt{hexpass} y \texttt{hexsalt} permiten que OpenSSL recupere sus bytes originales \ref{ref:openssl-kdf-cli}.
+Cada llamada genera 48 bytes: \texttt{dd} guarda los primeros 16 como clave de cifrado y los 32 restantes como clave de autenticación.
+
+Tras separar cada par, se elimina la clave derivada intermedia y \texttt{wc -c} muestra los tamaños reales de las dos claves generadas para cada fichero.
+Las claves se guardan en \texttt{secrets/derived-keys} y \texttt{iterations.txt} conserva el coste empleado (número de iteraciones).
+La creación del directorio mediante \texttt{mkdir} impide sobrescribir una derivación existente; \texttt{set -eu} detiene el script ante órdenes fallidas o variables no definidas.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Derivación y separación de claves de cifrado y autenticación por cada fichero: derive-keys.sh.},
+ label={lst:p1-derive-completo}]{recursos/listados/pregunta-1/derive-keys.sh}
+\endgroup
+
+La ejecución de \texttt{derive-keys.sh} produjo la siguiente salida.
+Para cada fichero, \texttt{wc -c} confirmó 16 bytes de cifrado y 32 bytes de autenticación, con un subtotal de 48 bytes generados por fichero:
+
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,caption={Ejecución de derive-keys.sh con validación de tamaños.},label={lst:p1-derivacion-real}]{recursos/salidas/pregunta-1/derivacion.txt}
+\endgroup
+
+Como ejemplo, se muestran en hexadecimal las dos claves generadas para el fichero 01.
+Cada par de dígitos representa un byte: la clave de cifrado ocupa una línea de 16 bytes y la de autenticación, dos líneas de 16 bytes (32 bytes totales).
+La representación permite consultar los valores binarios sin modificar los archivos.
+
+\begingroup
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize]{recursos/salidas/pregunta-1/claves-derivadas-hex.txt}
+\endgroup
+
+Se obtienen diez pares de claves de los tamaños previstos y sales distintas. La maestra, las sales y las iteraciones permiten reproducir la derivación.
+
+\textbf{Generación de los ficheros originales:} El script auxiliar \texttt{gen-files.sh} utiliza \texttt{openssl rand} para generar diez ficheros binarios, sin un contenido específico.
+El tamaño inicial es de 1\,024 bytes y aumenta un byte por fichero, hasta 1\,033; así se comprueba el relleno con longitudes distintas. Puede indicarse otro tamaño inicial como argumento.
+
+Los archivos nuevos quedan restringidos al propietario mediante \texttt{umask 077}; si falla alguna generación, se elimina el archivo incompleto de esa operación.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Generación de diez ficheros aleatorios con distintos tamaños: gen-files.sh.},
+ label={lst:p1-gen-files}]{recursos/listados/pregunta-1/gen-files.sh}
+\endgroup
+
+La ejecución creó los diez originales con los tamaños previstos:
+
+\noindent\begin{minipage}{\linewidth}
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,
+ caption={Generación de los originales de 1024 a 1033 bytes.},
+ label={lst:p1-files-real}]{recursos/salidas/pregunta-1/generacion-ficheros.txt}
+\endgroup
+\end{minipage}
+
+\textbf{Cifrado y autenticación:} El script \texttt{encrypt-files.sh} asigna a cada fichero las claves derivadas de cifrado y autenticación con el mismo identificador.
+Reutiliza las sales y las 600\,000 iteraciones conservadas en la fase de derivación; comprueba la existencia de las entradas y los tamaños de las claves y la sal antes de procesarlas.
+
+Cada salida \texttt{file-XX.protected} comienza con una cabecera $H_i$ de 48 bytes: 4 para la versión \texttt{P1E1} (identifica AES-128-CBC y HMAC-SHA-256), 2 para el identificador, 10 para las iteraciones, 16 para la sal y 16 para un nuevo vector aleatorio.
+
+OpenSSL cifra el original con \texttt{enc -aes-128-cbc}, la clave $K_i^{\mathrm{cif}}$ y el vector generado, añadiendo automáticamente el relleno PKCS\#7. La opción \texttt{-nosalt} evita un encabezado de sal adicional de \texttt{enc}: la sal de PBKDF2 ya figura en $H_i$ y se utilizó al obtener las claves.
+Después, \texttt{dgst -sha256 -mac HMAC} calcula la etiqueta con $K_i^{\mathrm{mac}}$ sobre la cabecera y el criptograma, y la añade al final en formato binario \ref{ref:openssl-gcm}.
+
+El fichero protegido contiene, por tanto, $H_i\Vert C_i\Vert T_i$. La salida se escribe directamente en \texttt{encrypted/pregunta-1}, con permisos \texttt{600}; un fallo elimina el contenedor incompleto que se estuviera generando.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Cifrado AES-128-CBC y autenticación HMAC: encrypt-files.sh.},
+ label={lst:p1-encrypt-files}]{recursos/listados/pregunta-1/encrypt-files.sh}
+\endgroup
+
+La ejecución protegió los diez ficheros utilizando sus claves correspondientes:
+
+\noindent\begin{minipage}{\linewidth}
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,
+ caption={Cifrado y autenticación de los diez originales.},
+ label={lst:p1-cifrado-files-real}]{recursos/salidas/pregunta-1/cifrado-ficheros.txt}
+\endgroup
+\end{minipage}
+
+Todos los contenedores ocupan 1\,120 bytes. Los originales de 1\,024 a 1\,033 bytes producen un texto con relleno de 1\,040 bytes, al que se suman los 48 de cabecera y los 32 de etiqueta.
+En particular, el original de 1\,024 bytes, múltiplo de 16, recibe un bloque completo de relleno. La coincidencia de tamaños no implica que los criptogramas sean iguales.
+
+\textbf{Verificación y descifrado:} El script \texttt{decrypt-files.sh} solo necesita la maestra $K_M$ y los ficheros protegidos. Comprueba el tamaño y la versión del contenedor, el identificador y el formato de las iteraciones.
+Antes de derivar, limita estas últimas al intervalo de 1 a 10\,000\,000 para acotar el coste de procesar una cabecera todavía no autenticada.
+
+De cada cabecera recupera $S_i$, $c$ y $V_i$. Con la misma maestra, \texttt{openssl kdf} reconstruye los 48 bytes de PBKDF2-HMAC-SHA-256; \texttt{cut} separa sus primeros 16 bytes y los 32 restantes para recuperar $K_i^{\mathrm{cif}}$ y $K_i^{\mathrm{mac}}$.
+La representación hexadecimal contiene dos caracteres por byte. Estas claves se mantienen en memoria, sin leer ni recrear los archivos de claves derivadas \ref{ref:openssl-kdf-cli}.
+
+El script recalcula el HMAC sobre todos los bytes anteriores a la etiqueta almacenada. Recorre sus 32 bytes completos, combina cada pareja mediante XOR y acumula las diferencias mediante OR: solo acepta si el acumulador termina en cero.
+Este recorrido evita detenerse en la primera diferencia.
+
+Tras aceptar la autenticación, extrae el criptograma y lo descifra con la clave reconstruida y el vector almacenado. OpenSSL valida y retira el relleno antes de completar la salida en \texttt{decrypted/pregunta-1}.
+Un error posterior a su creación elimina el archivo incompleto; un rechazo de autenticación no produce un nuevo fichero descifrado.
+
+\begingroup
+\renewcommand{\lstlistingname}{Script}
+\setstretch{1}
+\lstinputlisting[style=programacompleto,language=bash,
+ caption={Reconstrucción PBKDF2, verificación HMAC y descifrado AES-128-CBC: decrypt-files.sh.},
+ label={lst:p1-decrypt-files}]{recursos/listados/pregunta-1/decrypt-files.sh}
+\endgroup
+
+La ejecución confirmó la reconstrucción con 600\,000 iteraciones, la verificación y la recuperación de los diez ficheros:
+
+\noindent\begin{minipage}{\linewidth}
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,
+ caption={Verificación HMAC y descifrado AES-128-CBC de los diez contenedores.},
+ label={lst:p1-descifrado-files-real}]{recursos/salidas/pregunta-1/descifrado-ficheros.txt}
+\endgroup
+\end{minipage}
+
+Finalmente, se comparó cada original con su recuperación mediante \texttt{cmp -s}, ejecutando el bucle desde \texttt{sh}.
+Cada mensaje \texttt{PASS} se muestra únicamente si ambos archivos coinciden byte a byte; la primera diferencia detendría las comparaciones:
+
+\noindent\begin{minipage}{\linewidth}
+\begingroup
+\renewcommand{\lstlistingname}{Salida y verificación}
+\setstretch{1}
+\lstinputlisting[style=terminal,basicstyle=\ttfamily\footnotesize,
+ caption={Comprobación exacta de los diez originales y sus recuperaciones.},
+ label={lst:p1-comparacion-files-real}]{recursos/salidas/pregunta-1/comparacion-ficheros.txt}
+\endgroup
+\end{minipage}
+
+Los diez mensajes \texttt{PASS} confirman la recuperación exacta de todos los originales.
+Con ello se completa la generación de diez claves de cifrado diferentes desde la maestra, su aplicación a diez ficheros y la posterior verificación y recuperación de sus contenidos.

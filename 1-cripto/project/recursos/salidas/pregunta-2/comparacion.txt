@@ -1,0 +1,7 @@
+$ cmp ../crypto-workspace/originals/tarea.pdf \
+    ../crypto-workspace/decrypted/tarea.pdf &&
+    printf '%s\n' 'PASS: recovered PDF matches the original byte for byte.'
+    
+PASS: recovered PDF matches the original byte for byte.
+$ pwd
+/home/user/1-cripto/scripts/pregunta-2

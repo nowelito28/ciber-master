@@ -1,1 +1,0 @@
-These report listings mirror scripts/pregunta-1 with explanatory comment lines removed. The interpreter directive is preserved. Regenerate these copies when the original scripts change. They are presentation copies, not the execution entry points.

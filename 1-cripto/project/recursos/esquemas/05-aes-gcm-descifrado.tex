@@ -1,0 +1,69 @@
+% File-level GCM authenticated decryption, based on NIST SP 800-38D, figure 4.
+\begingroup
+\setstretch{1}
+\hyphenpenalty=10000
+\newcommand{\decryptblock}[3]{%
+  {\fontsize{14}{16}\selectfont\bfseries\boldmath #1}\\[4pt]
+  {\fontsize{10}{12}\selectfont\mdseries #2}\\[3pt]
+  {\fontsize{9}{11}\selectfont\mdseries (#3)}%
+}
+\begin{tikzpicture}[x=1cm,y=1cm,
+  box/.style={proceso,text width=36mm,minimum height=17mm,inner sep=6pt},
+  public/.style={box,fill=white,funcionpublica},
+  private/.style={box,fill=white,funcionsecreta},
+  crypto/.style={box,funcioncripto},
+  size/.style={etiqueta,fill=none,font=\sffamily\fontsize{9}{11}\selectfont,inner sep=2pt}
+]
+  \node[public,text width=56mm] (file) at (6,0)
+    {\decryptblock{$V_i,\ C_i,\ T_i,\ A$}{Protected file}{read from disk; key stored separately}};
+  \node[box,funcionformato] (read) at (6,-3)
+    {\decryptblock{Read}{Separate stored fields}{ciphertext and recovery parameters}};
+  \draw[flujo] (file.south) -- (read.north);
+
+  \node[public] (iv) at (0,-6)
+    {\decryptblock{$V_i$}{Initialization vector}{12 bytes; 96 bits}};
+  \node[public] (cipher) at (6,-6)
+    {\decryptblock{$C_i$}{Ciphertext file}{all $N$ blocks; $n$ bytes}};
+  \node[public] (aad) at (12,-6)
+    {\decryptblock{AAD}{Additional Authenticated Data}{same public metadata $A$}};
+  \draw[flujo] (read.west) -- (0,-3) -- (iv.north);
+  \draw[flujo] (read.south) -- (cipher.north);
+  \draw[flujo] ([xshift=8mm]read.south) -- (6.8,-4.4) -- (12,-4.4) -- (aad.north);
+
+  \node[crypto] (ctr) at (0,-10)
+    {\decryptblock{AES-128-CTR}{Recover message blocks}{same key $K_i^{\mathrm{GCM}}$;\\rebuild stream from $V_i$;\\XOR with $C_i$}};
+  \node[crypto,text width=40mm] (auth) at (6,-10)
+    {\decryptblock{GHASH + AES}{Recompute authentication}{same $K_i^{\mathrm{GCM}}$ and $V_i$;\\process $C_i$, $A$ and lengths}};
+  \draw[flujo] (iv.south) -- (0,-7.5) -- (-1.1,-7.5) -- ([xshift=-11mm]ctr.north);
+  \draw[flujo] (cipher.south) -- (6,-8)
+    -- node[size,above] {$n$ bytes ($8n$ bits)} (1.1,-8) -- ([xshift=11mm]ctr.north);
+  \draw[flujo] (6,-8) -- (auth.north);
+  \fill[Grafito] (6,-8) circle (1.4pt);
+  \draw[flujo] (aad.south) -- (12,-8) -- (7.5,-8) -- ([xshift=15mm]auth.north);
+
+  \node[private] (candidate) at (0,-13.5)
+    {\decryptblock{$M_i$}{Recovered candidate}{not yet authenticated;\\provisional output}};
+  \node[public] (expected) at (6,-13.5)
+    {\decryptblock{$T_i^{\prime}$}{Computed tag}{16 bytes; 128 bits}};
+  \node[public] (received) at (12,-13.5)
+    {\decryptblock{$T_i$}{Received tag}{16 bytes; 128 bits}};
+  \draw[flujo] (ctr.south) -- node[size,left] {$n$ bytes\\($8n$ bits)} (candidate.north);
+  \draw[flujo] (auth.south) -- node[size,right] {16 bytes\\(128 bits)} (expected.north);
+  \draw[flujo] (read.east) -- (15.3,-3) -- (15.3,-13.5) -- (received.east);
+
+  \node[decision,text width=27mm,aspect=1.9,font=\sffamily\fontsize{10}{12}\selectfont] (check) at (6,-17.8)
+    {\textbf{$T_i^{\prime}=T_i$?}\\Verify before release\\(constant-time comparison)};
+  \draw[flujo] (expected.south) -- (check.north);
+  \draw[flujo] (received.south) -- (12,-17.8) -- (check.east);
+  \draw[flujo] (candidate.south) -- (0,-17.8) -- (check.west);
+
+  \node[private] (output) at (6,-22.1)
+    {\decryptblock{$M_i$}{Original plaintext file}{authenticated; $n$ bytes}};
+  \node[box,draw=Granate,text=Granate] (reject) at (12,-22.1)
+    {\decryptblock{Reject}{Authentication failed}{discard recovered candidate}};
+  \draw[flujo] (check.south) -- node[size,right] {Yes} (output.north);
+  \draw[flujo] (check.south east) -- (9.4,-19.3)
+    -- node[size,above] {No} (12,-19.3) -- (reject.north);
+  \leyendaFunciones{(6.5,-23.9)}
+\end{tikzpicture}
+\endgroup

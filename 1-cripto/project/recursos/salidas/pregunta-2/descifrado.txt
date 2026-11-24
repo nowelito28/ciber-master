@@ -1,0 +1,3 @@
+$ ./decrypt.sh
+DECRYPTED AND AUTHENTICATED: ../crypto-workspace/encrypted/tarea.pdf.cms -> ../crypto-workspace/decrypted/tarea.pdf
+ 1560658 ../crypto-workspace/decrypted/tarea.pdf

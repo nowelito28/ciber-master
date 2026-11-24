@@ -1,0 +1,4 @@
+$ openssl asn1parse -inform DER -in ../crypto-workspace/signatures/tarea.pdf.sig
+    0:d=0  hl=2 l=  68 cons: SEQUENCE
+    2:d=1  hl=2 l=  32 prim: INTEGER           :62804030B24BD6D91245E8408EE8DB276C78F7F3E4BE053ACD58AFA154486F93
+   36:d=1  hl=2 l=  32 prim: INTEGER           :72CC8DD3A4EC0D0E0D9247ED9B736F4BD0BC0A2FE174ACD8738E7A94304AD5D5

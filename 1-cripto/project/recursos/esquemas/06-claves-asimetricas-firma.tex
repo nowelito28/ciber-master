@@ -1,0 +1,36 @@
+% Original vector diagram: document signing with the sender's asymmetric key pair.
+\begingroup
+\setstretch{1}
+\hyphenpenalty=10000
+\newcommand{\sigblock}[3]{%
+ {\fontsize{13}{15}\selectfont\bfseries\boldmath #1}\\[4pt]
+ {\fontsize{10}{12}\selectfont #2}\\[3pt]
+ {\fontsize{8}{10}\selectfont (#3)}%
+}
+\begin{tikzpicture}[x=1cm,y=1cm,
+ box/.style={proceso,text width=27mm,minimum height=18mm,inner sep=6pt},
+ size/.style={etiqueta,fill=none,font=\sffamily\fontsize{9}{11}\selectfont}]
+ \node[box,fill=white,funcionpublica] (file) at (0,0)
+   {\sigblock{$M_i$}{Original file}{any file format}};
+ \node[box,funcioncripto] (sign) at (4,0)
+   {\sigblock{Sign}{Sender: Alice}{file + private key}};
+ \node[box,fill=white,funcionpublica] (signed) at (8,0)
+   {\sigblock{$M_i,\ \sigma_i$}{File and signature}{file remains unchanged}};
+ \node[box,funcioncripto] (verify) at (12,0)
+   {\sigblock{Verify}{Receiver: Bob}{file; signature; public key}};
+ \node[box,fill=white,funcionsecreta] (private) at (4,3)
+   {\sigblock{$d_A$}{Private key}{kept by Alice}};
+ \node[box,fill=white,funcionpublica] (public) at (12,3)
+   {\sigblock{$Q_A$}{Public key}{shared with Bob}};
+ \node[box,fill=white,funcionpublica] (result) at (12,-2.8)
+   {\sigblock{Valid / Invalid}{Verification result}{accept or reject}};
+ \draw[flujo] (file.east) -- (sign.west);
+ \draw[flujo] (sign.east) -- (signed.west);
+ \draw[flujo] (signed.east) -- (verify.west);
+ \draw[flujo] (private.south) -- (sign.north);
+ \draw[flujo] (public.south) -- (verify.north);
+ \draw[flujo,dashed] (private.east) -- node[size,above] {Public key derivation} (public.west);
+ \draw[flujo] (verify.south) -- (result.north);
+ \leyendaFunciones{(5.7,-4.5)}
+\end{tikzpicture}
+\endgroup
